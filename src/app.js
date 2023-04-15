@@ -57,6 +57,14 @@ app.post("/participants", async (req, res) => {
     }
 });
 
+app.get("/participants", async (req, res) => {
+    try {
+        const participants = await db.collection("participants").find().toArray();
+        res.send(participants);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
 
 const PORT = 5005; // A PORTA AO ENTREGAR DEVE SER 5000
 app.listen(PORT, console.log(`Server online on port: ${PORT}`));
