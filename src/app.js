@@ -66,5 +66,39 @@ app.get("/participants", async (req, res) => {
     }
 });
 
+app.post("/messages", async (req, res) => {
+
+    const user = req.headers.user;
+    const participant = await db.collection("participants").findOne({ name: user });
+    if (!participant) res.status(422).send("Participante não encontrado!");
+
+    const message = req.body;
+    message.from = user;
+
+    const messageSchema = joi.object({
+        from: joi.string().required(),
+        to: joi.string().required(),
+        text: joi.string().required(),
+        type: joi.string().valid("message", "private_message").required()
+    })
+
+    const validation = messageSchema.validate(message, { abortEarly: false });
+
+    if (validation.error) {
+        const errors = validation.error.details.map((detail) => detail.message);
+        return res.status(422).send(errors);
+    }
+
+    try {
+
+        message.time = dayjs().format("HH:mm:ss");
+        await db.collection("messages").insertOne(message);
+        res.sendStatus(201);
+
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
 const PORT = 5005; // A PORTA AO ENTREGAR DEVE SER 5000
 app.listen(PORT, console.log(`Server online on port: ${PORT}`));
