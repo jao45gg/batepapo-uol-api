@@ -19,7 +19,28 @@ try {
 } catch (err) {
     console.log(err.message);
 }
-const db = mongoClient.db()
+const db = mongoClient.db();
+
+setInterval(async () => {
+
+    const participants = await db.collection("participants").find().toArray();
+
+    for (let index = 0; index < participants.length; index++) {
+
+        if (participants[index].lastStatus < (Date.now() - 10000)) {
+
+            await db.collection("participants").deleteOne({ name: participants[index].name });
+            await db.collection("messages").insertOne({
+                from: participants[index].name,
+                to: 'Todos',
+                text: 'sai da sala...',
+                type: 'status',
+                time: `${dayjs().format("HH:mm:ss")}`
+            });
+        }
+    }
+
+}, 15000);
 
 app.post("/participants", async (req, res) => {
 
@@ -131,7 +152,7 @@ app.post("/status", async (req, res) => {
 
         const newParticipant = participant;
         newParticipant.lastStatus = Date.now();
-        await db.collection("participants").updateOne({name: participant.name}, { $set: newParticipant });
+        await db.collection("participants").updateOne({ name: participant.name }, { $set: newParticipant });
         res.sendStatus(200);
 
     } catch (err) {
