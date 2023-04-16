@@ -70,7 +70,7 @@ app.post("/messages", async (req, res) => {
 
     const user = req.headers.user;
     const participant = await db.collection("participants").findOne({ name: user });
-    if (!participant) res.status(422).send("Participante não encontrado!");
+    if (!participant) return res.status(422).send("Participante não encontrado!");
 
     const message = req.body;
     message.from = user;
@@ -98,6 +98,27 @@ app.post("/messages", async (req, res) => {
     } catch (err) {
         res.status(500).send(err.message);
     }
+});
+
+app.get("/messages", async (req, res) => {
+
+    const user = req.headers.user;
+    const participant = await db.collection("participants").findOne({ name: user });
+    if (!participant) return res.status(422).send("Participante não encontrado!");
+
+    const limit = req.query.limit;
+    if (limit <= 0 || (isNaN(limit) && limit !== undefined)) return res.status(422).send("Valor de limit inválido!");
+
+    try {
+
+        const messages = await db.collection("messages").find({ $or: [{ to: "Todos" }, { to: user }, { from: user }] }).toArray();
+        if (limit === undefined) return res.send(messages);
+        res.send(messages.slice(-limit));
+
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+
 });
 
 const PORT = 5005; // A PORTA AO ENTREGAR DEVE SER 5000
