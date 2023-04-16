@@ -25,7 +25,7 @@ setInterval(async () => {
 
     const participants = await db.collection("participants").find().toArray();
 
-    for (let index of participants) {
+    for (let index = 0; index < participants.length; index++) {
 
         if (participants[index].lastStatus < (Date.now() - 10000)) {
 
