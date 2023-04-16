@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 import joi from "joi";
 import dayjs from "dayjs";
@@ -70,7 +70,7 @@ app.post("/messages", async (req, res) => {
 
     const user = req.headers.user;
     const participant = await db.collection("participants").findOne({ name: user });
-    if (!participant) return res.status(422).send("Participante não encontrado!");
+    if (!participant) return res.status(404).send("Participante não encontrado!");
 
     const message = req.body;
     message.from = user;
@@ -104,7 +104,7 @@ app.get("/messages", async (req, res) => {
 
     const user = req.headers.user;
     const participant = await db.collection("participants").findOne({ name: user });
-    if (!participant) return res.status(422).send("Participante não encontrado!");
+    if (!participant) return res.status(404).send("Participante não encontrado!");
 
     const limit = req.query.limit;
     if (limit <= 0 || (isNaN(limit) && limit !== undefined)) return res.status(422).send("Valor de limit inválido!");
@@ -119,6 +119,24 @@ app.get("/messages", async (req, res) => {
         res.status(500).send(err.message);
     }
 
+});
+
+app.post("/status", async (req, res) => {
+
+    const user = req.headers.user;
+    const participant = await db.collection("participants").findOne({ name: user });
+    if (!participant) return res.sendStatus(404);
+
+    try {
+
+        const newParticipant = participant;
+        newParticipant.lastStatus = Date.now();
+        await db.collection("participants").updateOne({name: participant.name}, { $set: newParticipant });
+        res.sendStatus(200);
+
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 });
 
 const PORT = 5005; // A PORTA AO ENTREGAR DEVE SER 5000
