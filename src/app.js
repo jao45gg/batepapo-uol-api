@@ -160,5 +160,5 @@ app.post("/status", async (req, res) => {
     }
 });
 
-const PORT = 5005; // A PORTA AO ENTREGAR DEVE SER 5000
+const PORT = 5000; // A PORTA AO ENTREGAR DEVE SER 5000
 app.listen(PORT, console.log(`Server online on port: ${PORT}`));
