@@ -25,7 +25,7 @@ setInterval(async () => {
 
     const participants = await db.collection("participants").find().toArray();
 
-    for (let index = 0; index < participants.length; index++) {
+    for (let index of participants) {
 
         if (participants[index].lastStatus < (Date.now() - 10000)) {
 
@@ -48,7 +48,7 @@ app.post("/participants", async (req, res) => {
 
     const nameSchema = joi.object({
         name: joi.string().required()
-    })
+    });
 
     const validation = nameSchema.validate(name, { abortEarly: false });
 
@@ -69,7 +69,7 @@ app.post("/participants", async (req, res) => {
             text: "entra na sala...",
             type: "status",
             time: `${dayjs().format("HH:mm:ss")}`
-        })
+        });
 
         res.sendStatus(201);
 
@@ -91,7 +91,7 @@ app.post("/messages", async (req, res) => {
 
     const user = req.headers.user;
     const participant = await db.collection("participants").findOne({ name: user });
-    if (!participant) return res.status(404).send("Participante não encontrado!");
+    if (!participant) return res.status(422).send("Participante não encontrado!");
 
     const message = req.body;
     message.from = user;
@@ -101,7 +101,7 @@ app.post("/messages", async (req, res) => {
         to: joi.string().required(),
         text: joi.string().required(),
         type: joi.string().valid("message", "private_message").required()
-    })
+    });
 
     const validation = messageSchema.validate(message, { abortEarly: false });
 
